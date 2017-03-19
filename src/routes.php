@@ -49,6 +49,36 @@ $app->group('/api/usuarios', function(){
 		$code = ($json['code'] == 1) ? 200 : 401;
 		return $response->withJson($json, $code);
 
-	})->setName('usuario_by_id');
+	})->setName('buscar_usuario_por_id');
+
+	/**
+	* 
+	*/
+	$this->post('/{id}/actualizar/', function ($request, $response, $args)
+	{
+		$id = $args['id'];
+		$post = $request->getParams();
+		$post['id'] = $id;
+
+		$controller = new UsuarioController();
+		$json = $controller->callAction('upd', $post);
+		
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('actualizar_usuario');
+
+	/**
+	* 
+	*/
+	$this->post('/{id}/eliminar/', function ($request, $response, $args){
+
+		$controller = new UsuarioController();
+		$json = $controller->callAction('del', $args['id']);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('eliminar_usuario');
 
 });
