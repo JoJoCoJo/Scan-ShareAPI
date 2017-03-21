@@ -6,11 +6,13 @@
 class UsuarioController extends Controller{
 
 	static $routes = array(
-		'all' => 'obtenerUsuarios',
-		'one' => 'buscarUsuarioPorID',
-		'add' => 'insertarUsuario',
-		'upd' => 'actualizarUsuario',
-		'del' => 'eliminarUsuario'
+		'all' 	 => 'obtenerUsuarios',
+		'one' 	 => 'buscarUsuarioPorID',
+		'add' 	 => 'insertarUsuario',
+		'addAPI' => 'insertarUsuarioAPI',
+		'upd'  	 => 'actualizarUsuario',
+		'del' 	 => 'eliminarUsuario',
+		'log' 	 => 'loginAppAndroid'
 	);
 
 	/**
@@ -146,8 +148,113 @@ class UsuarioController extends Controller{
 					$usuario 		= new Usuarios();
 					$usuario->id 	= intval($params['id']);
 					$usuario->name 	= $params['name'];
-					$usuario->email = $params['email'];					
+					$usuario->email = $params['email'];			
 					$usuario->password = crypt($params['password'], $salt);
+					$usuario->role_id = $params['role_id'];
+
+					if ($usuario->save()){
+
+						$db::commit();
+						$this->response['code'] = 1;
+						$this->response['data'] = $usuario;
+						$this->response['message'] = 'Se ha guardado correctamente los datos.';
+
+					}else{
+
+						$this->response['code'] = 5;
+						$this->response['message'] = 'No se pudo completar la acción, intentelo más tarde.';
+
+					}
+					
+				} catch (Exception $e) {
+
+					$db::rollBack();
+					$this->response['code'] = 5;
+					$this->response['message'] = 'Ocurrió un error, favor de contactar al administrador.';
+					$this->response['error'] = $e->getMessage();
+
+				}
+
+
+			}
+
+
+		}else{
+
+			$this->response['code'] = 2;
+			$this->response['data'] = $params;
+			$this->response['message'] = 'Todos los parámetros son requeridos.';
+
+		}
+
+		return $this->response;
+	}
+
+		/**
+	*
+	*/
+	public function insertarUsuarioAPI(Array $params){
+		
+		$db = Connection::getConnectionAPI();
+
+		if (count($params) > 0 && $this->checarAtributos($params) === true){
+
+			$params = $this->limpiarDatos($params);
+			$messages = array();
+
+			if (is_int(intval($params['id'])) == false){
+
+				$messages[] = 'El campo ID debe ser de tipo numérico.';	
+			}
+
+			if (empty($params['email']) || is_null($params['email']) || strlen($params['email']) == 0){
+
+				$messages[] = 'El campo nombre no debe estar vacío.';
+
+			}elseif (count(Usuarios::where('email', '=', $params['email'])->get()) > 0) {
+
+				$messages[] = 'Ya existe una respuesta con el nombre: \'' . $params['email'] . '\'';
+
+			}
+
+			if (empty($params['name']) || is_null($params['name']) || strlen($params['name']) == 0){
+
+				$messages[] = 'El campo nombre no debe estar vacío.';
+
+			}
+
+			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
+
+				$messages[] = 'El campo nombre no debe estar vacío.';
+
+			}
+
+			if (is_int(intval($params['role_id'])) == false){
+
+				$messages[] = 'El campo rol debe ser de tipo numérico.';	
+			}
+
+			if (count($messages) > 0){
+
+				$this->response['code'] = 2;
+				$this->response['data'] = $params;
+				$this->response['message'] = $messages;
+
+			}else{
+
+				
+				$db::beginTransaction();
+
+				try {
+
+					$salt = '$2y$12$' . substr(strtr(base64_encode(openssl_random_pseudo_bytes(22)), '+', '.'), 0, 22);
+
+					$usuario 		= new Usuarios();
+					$usuario->id 	= intval($params['id']);
+					$usuario->name 	= $params['name'];
+					$usuario->email = $params['email'];
+					$usuario->password = crypt($params['password'], $salt);
+					$usuario->salt 	= $salt;
 					$usuario->role_id = $params['role_id'];
 
 					if ($usuario->save()){
@@ -338,7 +445,93 @@ class UsuarioController extends Controller{
 		return $this->response;
 	}
 
+	/**
+	*
+	*/
+	public function loginAppAndroid(Array $params) {
 
+		$db = Connection::getConnectionAPI();
+
+		if ((!array_key_exists('email', $params) || !array_key_exists('password', $params))) {
+				
+				$this->response['code'] = 2;
+				$this->response['message'] = 'Todos los parámetros son requeridos';
+
+			} else {
+
+				$params = $this->limpiarDatos($params);
+				$messages = array();
+
+				if (strlen($params['email']) == 0 || strlen($params['email']) > 255 || empty($params['email'])){
+
+					$messages[] = 'El campo email no puede quedar vacío ni tener una longitud mayor a 255 caracteres';
+
+				}elseif(!filter_var($params['email'], FILTER_VALIDATE_EMAIL)){
+
+					$messages[] = 'El email no es valido';
+				}
+
+				if (strlen($params['password']) == 0 || empty($params['password'])){
+
+					$messages[] = 'El campo contraseña no puede quedar vacío';
+				}
+
+				if (count($messages) > 0){
+
+					$this->response['code'] = 2;
+					$this->response['data'] = $params;
+					$this->response['message'] = $messages;
+
+				}else{
+
+					try {
+						
+						$usuario = Usuarios::where('email', '=', $params['email'])->get();
+						
+						if (count($usuario) > 0) {
+
+							$salt = $usuario[0]->salt;
+							$password = crypt($params['password'], $salt);
+
+							if ($usuario[0]->password === $password) {
+								
+								$datosUsuario = new Usuarios();
+								$datosUsuario->name 	= $usuario[0]->name;
+								$datosUsuario->email 	= $usuario[0]->email;
+								$datosUsuario->role_id 	= $usuario[0]->role_id;
+
+								$this->response['code'] = 1;
+								$this->response['data'] = $datosUsuario->toArray();
+								$this->response['message'] = 'Autenticación correcta';
+
+							}else{
+
+								$this->response['code'] = 2;
+								$this->response['data'] = $params;
+								$this->response['message'] = 'Contraseña incorrecta';
+							}
+
+						}else{
+
+							$this->response['code'] = 4;
+							$this->response['data'] = $params;
+							$this->response['message'] = 'Usuario no encontrado';
+
+						}
+
+					} catch (Exception $e) {
+						
+						$this->response['code'] = 5;
+						$this->response['message'] = 'Ocurrió un error, favor de contactar al administrador.';
+						$this->response['error'] = $e->getMessage();
+						
+					}
+				}
+			}
+
+		$json = $this->response;
+		return $json;
+	}
 
 	/**
 	* 
