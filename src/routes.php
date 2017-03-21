@@ -39,6 +39,21 @@ $app->group('/api/usuarios', function(){
 	})->setName('insertar_usuario');
 
 	/**
+	* Insertar un usuario
+	*/
+	$this->post('/android/', function ($request, $response, $args){
+
+		$post = $request->getParams();
+
+		$controller = new UsuarioController();
+		$json = $controller->callAction('addAPI', $post);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('insertar_usuario_api');
+
+	/**
 	* Buscar un usuario por su ID
 	*/
 	$this->get('/{id}/', function ($request, $response, $args){
@@ -52,7 +67,7 @@ $app->group('/api/usuarios', function(){
 	})->setName('buscar_usuario_por_id');
 
 	/**
-	* 
+	* Actualizar un usuario
 	*/
 	$this->post('/{id}/actualizar/', function ($request, $response, $args)
 	{
@@ -69,7 +84,7 @@ $app->group('/api/usuarios', function(){
 	})->setName('actualizar_usuario');
 
 	/**
-	* 
+	* Eliminar un usuario
 	*/
 	$this->post('/{id}/eliminar/', function ($request, $response, $args){
 
@@ -80,5 +95,19 @@ $app->group('/api/usuarios', function(){
 		return $response->withJson($json, $code);
 
 	})->setName('eliminar_usuario');
+
+	/**
+	* Autenticación de usuario
+	*/
+	$this->post('/auth/', function ($request, $response, $args) {
+
+		$params = $request->getParams();
+		$controller = new UsuarioController();
+		$json = $controller->callAction('log', $params);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('autenticacion_usuario');
 
 });
