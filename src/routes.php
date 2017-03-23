@@ -106,7 +106,7 @@ $app->group('/api/usuarios', function(){
 		$json = $controller->callAction('log', $params);
 
 		$code = ($json['code'] == 1) ? 200 : 401;
-		return $response->withJson($json, $code);
+		return $response->withJson(array($json), $code);
 
 	})->setName('autenticacion_usuario');
 
