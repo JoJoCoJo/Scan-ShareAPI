@@ -7,6 +7,7 @@ class UsuarioController extends Controller{
 
 	static $routes = array(
 		'all' 	 => 'obtenerUsuarios',
+		'allAPI' => 'obtenerUsuariosAPI',
 		'one' 	 => 'buscarUsuarioPorID',
 		'add' 	 => 'insertarUsuario',
 		'addAPI' => 'insertarUsuarioAPI',
@@ -25,9 +26,10 @@ class UsuarioController extends Controller{
 	);
 
 	private $attributes = array(
-		'id', 
 		'name', 
+		'lastname',
 		'email', 
+		'birthdate',
 		'password', 
 		'role_id'
 	);
@@ -48,6 +50,20 @@ class UsuarioController extends Controller{
 		$usuarios = Usuarios::orderBy('name', 'ASC')->get();
 		$this->response['data'] = $usuarios;
 		$this->response['message'] = 'Lista Usuarios';
+
+		return $this->response;
+	}
+
+	/**
+	*
+	*/
+	public function obtenerUsuariosAPI(){
+
+		$db = Connection::getConnectionAPI();
+		
+		$usuarios = Usuarios::orderBy('id', 'ASC')->get();
+		$this->response['data'] = $usuarios;
+		$this->response['message'] = 'Lista Usuarios App Móvil';
 
 		return $this->response;
 	}
@@ -202,11 +218,6 @@ class UsuarioController extends Controller{
 			$params = $this->limpiarDatos($params);
 			$messages = array();
 
-			if (is_int(intval($params['id'])) == false){
-
-				$messages[] = 'El campo ID debe ser de tipo numérico.';	
-			}
-
 			if (empty($params['email']) || is_null($params['email']) || strlen($params['email']) == 0){
 
 				$messages[] = 'El campo nombre no debe estar vacío.';
@@ -222,6 +233,19 @@ class UsuarioController extends Controller{
 				$messages[] = 'El campo nombre no debe estar vacío.';
 
 			}
+
+			if (empty($params['lastname']) || is_null($params['lastname']) || strlen($params['lastname']) == 0){
+
+				$messages[] = 'El campo apellido no debe estar vacío.';
+
+			}
+
+			if (strtotime($params['birthdate']) === false) {
+
+				$messages[] = 'Fecha no válida';
+
+			}
+
 
 			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
 
@@ -250,9 +274,11 @@ class UsuarioController extends Controller{
 					$salt = '$2y$12$' . substr(strtr(base64_encode(openssl_random_pseudo_bytes(22)), '+', '.'), 0, 22);
 
 					$usuario 		= new Usuarios();
-					$usuario->id 	= intval($params['id']);
+					$usuario->id 	= null;
 					$usuario->name 	= $params['name'];
+					$usuario->lastname = $params['lastname'];
 					$usuario->email = $params['email'];
+					$usuario->birthdate = $params['birthdate'];
 					$usuario->password = crypt($params['password'], $salt);
 					$usuario->salt 	= $salt;
 					$usuario->role_id = $params['role_id'];
@@ -497,7 +523,9 @@ class UsuarioController extends Controller{
 								
 								$datosUsuario = new Usuarios();
 								$datosUsuario->name 	= $usuario[0]->name;
+								$datosUsuario->lastname = $usuario[0]->lastname;
 								$datosUsuario->email 	= $usuario[0]->email;
+								$datosUsuario->birthdate = $usuario[0]->birthdate;
 								$datosUsuario->role_id 	= $usuario[0]->role_id;
 
 								$this->response['code'] = 1;
