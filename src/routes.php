@@ -2,9 +2,16 @@
 // Routes
 
 
+$app->get('/', function ($request, $response, $args) {
+
+	header('refresh:.1; url=/../views/loginView.php');
+
+});
+
 $app->get('/api', function ($request, $response, $args) {
 
     echo "¿qué onda ese?";
+
 });
 
 /**
