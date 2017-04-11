@@ -1,18 +1,48 @@
 <?php
-// Routes
 
+// Main Routes
+$app->group('/', function(){
 
-$app->get('/', function ($request, $response, $args) {
+	$this->get('', function ($request, $response, $args) {
 
-	header('refresh:.1; url=/../views/loginView.php');
+		if ($_SESSION == NULL) {
+			header('refresh:.1; url=/../views/loginView.php');	
+		}else{
+			header('refresh:.1; url=/../views/menuView.php');	
+		}
+
+	})->setName('login');	
+
+	$this->get('views/', function($request, $response, $args){
+		
+		if ($_SESSION == NULL) {
+			return $response->withRedirect('/');
+		}else{
+			return $response->withRedirect('/cerrar');
+		}
+
+	});
+	
+	$this->get('objetivos', function ($request, $response, $args) {
+
+		if ($_SESSION == NULL) {
+			header('refresh:.1; url=/../views/loginView.php');	
+		}else{
+			header('refresh:.1; url=/../views/objetivoView.php');	
+		}
+
+	})->setName('objetivos');	
+
+	$this->get('cerrar', function ($request, $response, $args) {
+
+		session_destroy();
+	    unset($_SESSION);
+	    header('refresh:.1; url=/../views/loginView.php');
+
+	})->setName('cerrar_sesion');
 
 });
 
-$app->get('/api', function ($request, $response, $args) {
-
-    echo "¿qué onda ese?";
-
-});
 
 /**
 * Rutas para los usuarios
@@ -143,7 +173,7 @@ $app->group('/api/targets', function(){
 	/**
 	* Listar a todos los targets
 	*/
-	$this->post('/', function ($request, $response, $args){
+	$this->get('/', function ($request, $response, $args){
 
 		$controller = new TargetController();
 		$json = $controller->callAction('all');
@@ -166,5 +196,18 @@ $app->group('/api/targets', function(){
 		return $response->withJson(array($json), $code);
 
 	})->setName('medir_distancia_target');
+
+	/**
+	* Eliminar un target
+	*/
+	$this->get('/{id}/eliminar/', function ($request, $response, $args){
+
+		$controller = new TargetController();
+		$json = $controller->callAction('del', $args['id']);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('eliminar_objetivo');
 
 });
