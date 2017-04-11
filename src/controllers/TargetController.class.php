@@ -8,7 +8,8 @@ class TargetController extends Controller
 	
 	static $routes = array(
 		'all' 	 	=> 'obtenerTargets',
-		'cerca' 	=> 'medirDistancia'
+		'cerca' 	=> 'medirDistancia',
+		'del' 	 	=> 'eliminarObjetivo'
 	);
 
 	/**
@@ -130,6 +131,49 @@ class TargetController extends Controller
 
 		}
 
+
+		return $this->response;
+	}
+
+	/**
+	*
+	*/
+	public function eliminarObjetivo($id){
+		$db = Connection::getConnectionAPI();
+
+		$params = $this->limpiarDatos(array($id));
+		$objetivo = Targets::find($params[0]);
+		
+		if (count($objetivo) > 0) {
+			
+			
+			$db::beginTransaction();
+
+			try {
+
+				if ($objetivo->delete()) {
+
+					$db::commit();
+					$this->response['code'] = 1;
+					$this->response['message'] = 'El Registro se ha eliminado correctamente.';
+
+				}
+				
+			} catch (Exception $e) {
+				
+				$db::rollBack();
+				$this->response['code'] = 5;
+				$this->response['message'] = 'Ocurrió un error, favor de contactar al administrado.';
+				$this->response['error'] = $e->getMessage();
+
+			}
+
+		}else{
+
+			$this->response['code'] = 4;
+			$this->response['message'] = 'Registro no encontrado.';
+
+		}
 
 		return $this->response;
 	}
