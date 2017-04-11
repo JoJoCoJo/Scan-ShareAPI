@@ -220,12 +220,15 @@ class UsuarioController extends Controller{
 
 			if (empty($params['email']) || is_null($params['email']) || strlen($params['email']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo email no debe estar vacío.';
 
 			}elseif (count(Usuarios::where('email', '=', $params['email'])->get()) > 0) {
 
-				$messages[] = 'Ya existe una respuesta con el nombre: \'' . $params['email'] . '\'';
+				$messages[] = 'Ya existe una respuesta con el email: \'' . $params['email'] . '\'';
 
+			}elseif (!filter_var($params['email'], FILTER_VALIDATE_EMAIL)){
+
+				$messages[] = 'El email no es válido';
 			}
 
 			if (empty($params['name']) || is_null($params['name']) || strlen($params['name']) == 0){
@@ -249,7 +252,7 @@ class UsuarioController extends Controller{
 
 			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo password no debe estar vacío.';
 
 			}
 
@@ -527,6 +530,20 @@ class UsuarioController extends Controller{
 								$datosUsuario->email 	= $usuario[0]->email;
 								$datosUsuario->birthdate = $usuario[0]->birthdate;
 								$datosUsuario->role_id 	= $usuario[0]->role_id;
+
+								date_default_timezone_set('America/Mexico_City');
+
+								$_SESSION['sesionLogin'] = 
+
+								array(
+									'name' 			=> $usuario[0]->name,
+									'lastname' 		=> $usuario[0]->lastname,
+									'email' 		=> $usuario[0]->email,
+									'birth' 		=> $usuario[0]->birthdate,
+									'role' 			=> $usuario[0]->role_id,
+									'horaFormat' 	=> date('g:i a'),
+									'horaEntrada' 	=> time()
+									);
 
 								$this->response['code'] = 1;
 								$this->response['data'] = $datosUsuario->toArray();
