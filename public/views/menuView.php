@@ -1,57 +1,36 @@
+<?php session_start(); 
+	include '../parts/checar_sesion.php';
+?>
 <!DOCTYPE html>
 <html>
 <head>
+	
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 	<link rel="stylesheet" type="text/css" href="/css/materialize.css">
 	<link rel="stylesheet" type="text/css" href="/font-awesome-4.7.0/css/font-awesome.css">
 	<link rel="stylesheet" type="text/css" href="/sweetalert2/sweetalert2.css">
+	<link rel="stylesheet" type="text/css" href="/DataTables/media/css/jquery.dataTables.css">
 
-	<title>¡Bienvenido!</title>
+	<title>Principal | Plataforma</title>
 
-	<script type="text/javascript" src="/js/jquery-3.2.0.js"></script>
+	<script type="text/javascript" src="/js/jquery-2.1.1.js"></script>
 	<script type="text/javascript" src="/js/materialize.js"></script>
 	<script type="text/javascript" src="/sweetalert2/sweetalert2.js"></script>
+	<script type="text/javascript" src="/DataTables/media/js/jquery.dataTables.js"></script>
 
-	<script type="text/javascript">
-		var nombre = sessionStorage.getItem('loginNombre');
-		var apellido = sessionStorage.getItem('loginApellido');
-		var email = sessionStorage.getItem('loginEmail');
-		var nacimiento = sessionStorage.getItem('loginBirth');
-		var role = sessionStorage.getItem('loginRole');
-
-		$(document).ready(function(){
-			document.getElementById('nombreMenu').text = nombre +' '+ apellido;
-			document.getElementById('emailMenu').text = email +',  '+ nacimiento+', '+ role;
-		});
-	</script>
-
-	<script type="text/javascript">
-		$(document).ready(function(){
-			  $(".button-collapse").sideNav();
-		});
-	</script>
+	<script type="text/javascript" src="/js/menu.js"></script>
 </head>
-<body>
-<header>
-	<nav class="blue darken-4">		
-		<ul id="slide-out" class="side-nav">
-			<li>
-				<div class="userView">
-			      <div class="background">
-			        <img src="/media/image/fondo-banner.jpg" width="100%">
-			      </div>
-			      <a href="#!user"><img class="circle" src="/media/image/user.png"></a>
-			      <a href="#!name" id="nombreMenu" name="nombreMenu"><span class="white-text name">Example Name</span></a>
-			      <a href="#!email" id="emailMenu" name="emailMenu"><span class="white-text email">example@gmail.com</span></a>
-			    </div>
-			</li>
-		    <li><a href="#!">First Sidebar Link</a></li>
-		    <li><a href="#!">Second Sidebar Link</a></li>
-	    </ul>
-	    <a href="#" data-activates="slide-out" class="button-collapse show-on-large"><i class="fa fa-bars fa-2x" aria-hidden="true"></i></a>		      
-	</nav>
-</header>
+<body class="banner">
+	<header>
+	<?php include '../parts/navbar.php'; ?>
+	</header>
 
-<h1>PASASTE LA PRUEBA :v</h1>
+	<div class="container">
+		<div class="row">
+			<div class="col s12">
+				<h1>¡Bienvenido!</h1>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
