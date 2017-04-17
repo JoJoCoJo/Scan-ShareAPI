@@ -31,7 +31,17 @@ $app->group('/', function(){
 			header('refresh:.1; url=/../views/objetivoView.php');	
 		}
 
-	})->setName('objetivos');	
+	})->setName('objetivos');
+
+	$this->get('usuarios', function ($request, $response, $args) {
+
+		if ($_SESSION == NULL) {
+			header('refresh:.1; url=/../views/loginView.php');	
+		}else{
+			header('refresh:.1; url=/../views/usuarioView.php');	
+		}
+
+	})->setName('objetivos');
 
 	$this->get('cerrar', function ($request, $response, $args) {
 
@@ -184,7 +194,21 @@ $app->group('/api/targets', function(){
 	})->setName('lista_targets');
 
 	/**
-	* Medir a distancia entre la posición actual y el target más cercano
+	* Insertar un objetivo
+	*/
+	$this->post('/', function ($request, $response, $args){
+
+		$controller = new TargetController();
+		$params = $request->getParams();
+		$json = $controller->callAction('add', $params);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson(array($json), $code);
+
+	})->setName('insertar_targets');
+
+	/**
+	* Medir a distancia entre la posición actual y el objetivo más cercano
 	*/
 	$this->post('/medir/', function ($request, $response, $args){
 
@@ -196,6 +220,36 @@ $app->group('/api/targets', function(){
 		return $response->withJson(array($json), $code);
 
 	})->setName('medir_distancia_target');
+
+	/**
+	* Buscar un objetivo por su ID
+	*/
+	$this->get('/{id}/', function ($request, $response, $args){
+
+		$controller = new TargetController();
+		$json = $controller->callAction('oneAPI', $args['id']);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('buscar_objetivo_por_id');
+
+	/**
+	* Actualizar un objetivo
+	*/
+	$this->post('/{id}/actualizar/', function ($request, $response, $args)
+	{
+		$id = $args['id'];
+		$post = $request->getParams();
+		$post['id'] = $id;
+
+		$controller = new TargetController();
+		$json = $controller->callAction('uptAPI', $post);
+		
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson($json, $code);
+
+	})->setName('actualizar_objetivo');
 
 	/**
 	* Eliminar un target
