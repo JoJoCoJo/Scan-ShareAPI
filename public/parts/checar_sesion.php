@@ -22,6 +22,7 @@
 	     
 		    session_destroy();
 		    $_SESSION = array();
+		    unset($_SESSION);
 		    
 		    echo "<html><meta charset=\"utf-8\"><script>alert ('La sesión estuvo inactiva por más de 30 mins,\\nPor favor de inicie sesión de nuevo')</script><body style=\"display:none\"></body></html>";
 		    header('refresh:.1; url=/../views/loginView.php');
