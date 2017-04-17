@@ -14,11 +14,14 @@ $(document).ready(function(){
 			dataType: 'JSON',
 			data: params,
 			beforeSend: function(){
-				swal('Procesando, por favor espere...');
+				swal({
+				  title: 'Procesando, por favor espere...',        
+				  html: '<div class="progress"><div class="indeterminate blue"></div></div>'
+				});
 			},
 			success: function(response){
 				$.each(response, function(result, element){
-					console.log(response);
+					//console.log(response);
 					swal({
 					  title: '¡Bienvenido ' +element.data.name+' '+element.data.lastname+'!',
 					  text: element.message,
@@ -43,8 +46,8 @@ $(document).ready(function(){
 			 error: function (XMLHttpRequest, textStatus, errorThrown) {
 			 	// console.log('Error params:');
 			 	// console.log(params);
-			 	$.each(JSON.parse(XMLHttpRequest.responseText), function(result, element){
-			 		swal('Algo salío mal.', element.message, 'error');	
+			 	$.each(XMLHttpRequest.responseJSON, function(result, element){
+			 		swal('Algo salío mal.', element.message.toString(), 'error');	
 			 	});
                 console.error('Error: '+ textStatus, errorThrown);
                 
