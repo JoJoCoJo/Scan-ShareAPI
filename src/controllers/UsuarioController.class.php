@@ -47,11 +47,22 @@ class UsuarioController extends Controller{
 	*/
 	public function obtenerUsuarios(){
 		
+		$db = Connection::getConnectionAPI();
+
 		$usuarios = Usuarios::orderBy('name', 'ASC')->get();
+
+		foreach ($usuarios as $key => $value) {
+			unset($usuarios[$key]->password);
+			unset($usuarios[$key]->salt);
+			unset($usuarios[$key]->remember_token);
+			unset($usuarios[$key]->created_at);
+			unset($usuarios[$key]->updated_at);
+		}
+
 		$this->response['data'] = $usuarios;
 		$this->response['message'] = 'Lista Usuarios';
 
-		return $this->response;
+		return $this->response; 
 	}
 
 	/**
@@ -72,6 +83,8 @@ class UsuarioController extends Controller{
 	*
 	*/
 	public function buscarUsuarioPorID($id){
+		
+		$db = Connection::getConnectionAPI();
 
 		$params = $this->limpiarDatos(array($id));
 
@@ -109,24 +122,24 @@ class UsuarioController extends Controller{
 	*/
 	public function insertarUsuario(Array $params){
 
+		$db = Connection::getConnectionAPI();
+
 		if (count($params) > 0 && $this->checarAtributos($params) === true){
 
 			$params = $this->limpiarDatos($params);
 			$messages = array();
 
-			if (is_int(intval($params['id'])) == false){
-
-				$messages[] = 'El campo ID debe ser de tipo numérico.';	
-			}
-
 			if (empty($params['email']) || is_null($params['email']) || strlen($params['email']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo email no debe estar vacío.';
 
 			}elseif (count(Usuarios::where('email', '=', $params['email'])->get()) > 0) {
 
-				$messages[] = 'Ya existe una respuesta con el nombre: \'' . $params['email'] . '\'';
+				$messages[] = 'Ya existe una Usuario con el email: \'' . $params['email'] . '\'';
 
+			}elseif (!filter_var($params['email'], FILTER_VALIDATE_EMAIL)){
+
+				$messages[] = 'El email no es válido';
 			}
 
 			if (empty($params['name']) || is_null($params['name']) || strlen($params['name']) == 0){
@@ -135,13 +148,26 @@ class UsuarioController extends Controller{
 
 			}
 
-			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
+			if (empty($params['lastname']) || is_null($params['lastname']) || strlen($params['lastname']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo apellido no debe estar vacío.';
 
 			}
 
-			if (is_int(intval($params['role_id'])) == false){
+			if (strtotime($params['birthdate']) === false) {
+
+				$messages[] = 'Fecha no válida';
+
+			}
+
+
+			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
+
+				$messages[] = 'El campo password no debe estar vacío.';
+
+			}
+
+			if (!is_numeric($params['role_id'])) {
 
 				$messages[] = 'El campo rol debe ser de tipo numérico.';	
 			}
@@ -154,23 +180,32 @@ class UsuarioController extends Controller{
 
 			}else{
 
-				$db = Connection::getConnection();
+				
 				$db::beginTransaction();
 
 				try {
 
 					$salt = '$2y$12$' . substr(strtr(base64_encode(openssl_random_pseudo_bytes(22)), '+', '.'), 0, 22);
 
-					$usuario 		= new Usuarios();
-					$usuario->id 	= intval($params['id']);
-					$usuario->name 	= $params['name'];
-					$usuario->email = $params['email'];			
-					$usuario->password = crypt($params['password'], $salt);
-					$usuario->role_id = $params['role_id'];
+					$usuario 			= new Usuarios();
+					$usuario->id 		= null;
+					$usuario->name 		= $params['name'];
+					$usuario->lastname 	= $params['lastname'];
+					$usuario->email 	= $params['email'];
+					$usuario->birthdate = $params['birthdate'];
+					$usuario->password 	= crypt($params['password'], $salt);
+					$usuario->salt 		= $salt;
+					$usuario->role_id 	= $params['role_id'];
 
 					if ($usuario->save()){
 
 						$db::commit();
+
+						unset($usuario->id);
+						unset($usuario->password);
+						unset($usuario->salt);
+						unset($usuario->created_at);
+						unset($usuario->updated_at);
 						$this->response['code'] = 1;
 						$this->response['data'] = $usuario;
 						$this->response['message'] = 'Se ha guardado correctamente los datos.';
@@ -206,7 +241,7 @@ class UsuarioController extends Controller{
 		return $this->response;
 	}
 
-		/**
+	/**
 	*
 	*/
 	public function insertarUsuarioAPI(Array $params){
@@ -328,6 +363,8 @@ class UsuarioController extends Controller{
 	+
 	*/
 	public function actualizarUsuario(Array $params){
+		
+		$db = Connection::getConnectionAPI();
 
 		if (count($params) > 0 && $this->checarAtributos($params) === true){
 
@@ -346,11 +383,11 @@ class UsuarioController extends Controller{
 
 			if (empty($params['email']) || is_null($params['email']) || strlen($params['email']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo Correo no debe estar vacío.';
 
-			}elseif (count(Usuarios::where('email', '=', $params['email'])->get()) > 0) {
+			}elseif (count(Usuarios::where('email', '=', $params['email'])->where('id', '!=', $params['id'])->get()) > 0) {
 
-				$messages[] = 'Ya existe una respuesta con el nombre: \'' . $params['email'] . '\'';
+				$messages[] = 'Ya existe un usuario con el correo : \'' . $params['email'] . '\'';
 
 			}
 
@@ -362,13 +399,25 @@ class UsuarioController extends Controller{
 
 			if (empty($params['password']) || is_null($params['password']) || strlen($params['password']) == 0){
 
-				$messages[] = 'El campo nombre no debe estar vacío.';
+				$messages[] = 'El campo constraseña no debe estar vacío.';
 
 			}
 
-			if (is_int(intval($params['role_id'])) == false){
+			if (empty($params['lastname']) || is_null($params['lastname']) || strlen($params['lastname']) == 0){
+
+				$messages[] = 'El campo apellido no debe estar vacío.';
+
+			}
+
+			if (is_numeric($params['role_id']) == false){
 
 				$messages[] = 'El campo rol debe ser de tipo numérico.';	
+			}
+
+			if (strtotime($params['birthdate']) === false) {
+
+				$messages[] = 'Fecha no válida';
+
 			}
 
 			if (count($messages) > 0){
@@ -379,22 +428,30 @@ class UsuarioController extends Controller{
 
 			}else{
 
-				$db = Connection::getConnection();
 				$db::beginTransaction();
 
 				try {
 
 					$salt = '$2y$12$' . substr(strtr(base64_encode(openssl_random_pseudo_bytes(22)), '+', '.'), 0, 22);
 
-					$usuario 		= Usuarios::find($params['id']);
-					$usuario->id 	= intval($params['id']);
-					$usuario->name 	= $params['name'];
-					$usuario->email = $params['email'];					
-					$usuario->password = crypt($params['password'], $salt);
-					$usuario->role_id = $params['role_id'];
+					$usuario 			= Usuarios::find($params['id']);
+					$usuario->id 		= intval($params['id']);
+					$usuario->name 		= $params['name'];
+					$usuario->lastname 	= $params['lastname'];
+					$usuario->email 	= $params['email'];
+					$usuario->birthdate = $params['birthdate'];
+					$usuario->password 	= crypt($params['password'], $salt);
+					$usuario->salt 		= $salt;
+					$usuario->role_id 	= $params['role_id'];
 
 					if ($usuario->save()){
 
+						unset($usuario->password);
+						unset($usuario->salt);
+						unset($usuario->role_id);
+						unset($usuario->remember_token);
+						unset($usuario->created_at);
+						unset($usuario->updated_at);
 						$db::commit();
 						$this->response['code'] = 1;
 						$this->response['data'] = $usuario;
@@ -437,12 +494,13 @@ class UsuarioController extends Controller{
 	*/
 	public function eliminarUsuario($id){
 
+		$db = Connection::getConnectionAPI();
+
 		$params = $this->limpiarDatos(array($id));
 		$usuario = Usuarios::find($params[0]);
 
 		if (count($usuario) > 0) {
 			
-			$db = Connection::getConnection();
 			$db::beginTransaction();
 
 			try {
@@ -576,6 +634,56 @@ class UsuarioController extends Controller{
 
 		$json = $this->response;
 		return $json;
+	}
+
+	/**
+	*
+	*/
+	function mandarCorreo($usuarioNombre, $usuarioCorreo, $usuarioPassword){
+
+		$para 	 	= "$usuarioNombre <$usuarioCorreo>";
+		$asunto  	= "Registro del Usuario $usuarioNombre";
+
+		$mensaje = "<html lang=\"es\">
+						<head>
+						<meta charset=\"utf-8\"/>
+						  <title>Nuevo Usuario</title>
+						</head>
+						<body>
+						  <img src=\"http://www.ciidigital.com/img/BannerSep.png\" width=\"600\">
+						  <p>Estos son sus datos para ingresar a la plataforma:</p>
+						  <section>
+							  	<center>
+								  <table border=\"1\">
+	      								<thead>
+									      <tr>
+									        <td><h5><strong>USUARIO</strong></h5></td>
+									        <td><h5><strong>CONTRASEÑA</strong></h5></td>
+									      </tr>
+									    </thead>
+	      								<tbody>
+									      <tr>
+									        <th><h5> $usuarioNombre </h5></th>
+									        <td><h5> $usuarioPassword </h5></td>
+									      </tr>
+									    </tbody>
+									</table>
+								</center>
+								<br/>
+								<br/>
+								<br/>
+							</section>
+							<section>
+								<center><a href=\"http://www.ciidigital.com/\">CIID Examenes Online</a></center>
+							</section>
+						</body>
+					</html>";
+
+		$headers  	= "From: Scan-Share <scan-share@hotmail.com>" . "\r\n";
+		$headers   .= 'MIME-Version: 1.0' . "\r\n";
+		$headers   .= 'Content-type: text/html; charset=iso-8' . "\r\n";
+
+		mail($para, $asunto, $mensaje, $headers);
 	}
 
 	/**
