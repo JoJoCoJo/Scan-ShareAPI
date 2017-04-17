@@ -9,7 +9,10 @@ class TargetController extends Controller
 	static $routes = array(
 		'all' 	 	=> 'obtenerTargets',
 		'cerca' 	=> 'medirDistancia',
-		'del' 	 	=> 'eliminarObjetivo'
+		'add'		=> 'insertarTargetAPI',
+		'oneAPI'	=> 'buscarTargetPorIdAPI',
+		'del' 	 	=> 'eliminarObjetivo',
+		'uptAPI'	=> 'actualizarTargetAPI'
 	);
 
 	/**
@@ -22,18 +25,14 @@ class TargetController extends Controller
 	);
 
 	private $attributes = array(
-		'id',
 		'name',
 		'description',
 		'phone',
-		'latitude',
-		'longitude',
 		'facebook',
 		'twitter',
 		'instagram',
 		'youtube',
 		'type',
-		'shared',
 		'url'		
 	);
 
@@ -48,6 +47,7 @@ class TargetController extends Controller
 	*
 	*/
 	public function obtenerTargets(){
+
 		$db = Connection::getConnectionAPI();
 
 		$targets = Targets::orderBy('id', 'ASC')->get();
@@ -61,6 +61,7 @@ class TargetController extends Controller
 	*
 	*/
 	public function medirDistancia(Array $params){
+
 		$db = Connection::getConnectionAPI();
 
 		$params = $this->limpiarDatos($params);
@@ -78,11 +79,11 @@ class TargetController extends Controller
 
 			if (empty($params['latitude']) || empty($params['longitude'])) {
 
-				$messages[] = 'El campo latitude o longitude no puede quedar vacío y deben ser números decimales';
+				$messages[] = 'El campo latitude o longitude no pueden quedar vacíos.';
 
 			}elseif (!is_double($params['latitude']) || !is_double($params['longitude'])) {
 				
-				$messages[] = 'El campo latitude o longitude tienen que ser números decimales';
+				$messages[] = 'El campo latitude o longitude tienen que ser números decimales.';
 
 			}
 
@@ -138,7 +139,197 @@ class TargetController extends Controller
 	/**
 	*
 	*/
+	public function buscarTargetPorIdAPI($id){
+
+		$db = Connection::getConnectionAPI();
+
+		$params = $this->limpiarDatos(array($id));
+
+		if (is_int(intval($params[0]))) {
+
+			$target = Targets::find(intval($params[0]));
+
+			if ($target != null) {
+				
+				$this->response['code'] = 1;
+				$this->response['data'] = $target;
+				$this->response['message'] = 'Resgistro encontrado.';
+
+			}else{
+
+				$this->response['code'] = 4;
+				$this->response['message'] = 'Resgistro no encontrado.';
+
+			}
+
+		}else{
+
+			$this->response['code'] = 5;
+			$this->response['message'] = 'El identificador del Objetivo debe ser de tipo numérico.';
+
+		}
+
+		return $this->response;
+	}
+
+	/**
+	*
+	*/
+	public function insertarTargetAPI(Array $params){
+		
+		$db = Connection::getConnectionAPI();
+
+		if (count($params) > 0 && $this->checarAtributos($params) === true){
+
+			$params = $this->limpiarDatos($params);
+
+			$params['latitude'] = doubleval($params['latitude']);
+			$params['longitude'] = doubleval($params['longitude']);
+			$params['min_mts'] = doubleval($params['min_mts']);
+
+			$messages = array();
+			
+			if (empty($params['name']) || is_null($params['name']) || strlen($params['name']) == 0){
+
+				$messages[] = 'El campo Nombre no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['description']) || is_null($params['description']) || strlen($params['description']) == 0){
+
+				$messages[] = 'El campo Descripción no debe estar vacío, ni tener más de 255 carácteres';
+
+			}
+
+			if (empty($params['phone']) || is_null($params['phone']) || !is_numeric($params['phone'])){
+
+				$messages[] = 'El campo Teléfono debe ser de tipo numérico.';
+			}
+
+			if (empty($params['latitude']) || empty($params['longitude'])) {
+
+				$messages[] = 'El campo latitude o longitud no pueden quedar vacíos.';
+
+			}elseif (!is_double($params['latitude']) || !is_double($params['longitude'])) {
+				
+				$messages[] = 'El campo latitude o longitud deben ser números decimales.';
+
+			}
+
+			if (empty($params['min_mts']) || !is_double($params['min_mts'])) {
+
+				$messages[] = 'El campo de Radio dentro del POI no puede quedar vacío y debe ser número decimal.';
+
+			}
+			
+			if (empty($params['facebook']) || is_null($params['facebook']) || strlen($params['facebook']) == 0){
+
+				$messages[] = 'El campo Facebook no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['twitter']) || is_null($params['twitter']) || strlen($params['twitter']) == 0){
+
+				$messages[] = 'El campo Twitter no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['instagram']) || is_null($params['instagram']) || strlen($params['instagram']) == 0){
+
+				$messages[] = 'El campo Instagram no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['youtube']) || is_null($params['youtube']) || strlen($params['youtube']) == 0){
+
+				$messages[] = 'El campo Youtube no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['url']) || is_null($params['url']) || strlen($params['url']) == 0){
+
+				$messages[] = 'El campo Página Web no debe estar vacío, ni tener más de 255 carácteres';
+
+			}
+
+			if (empty($params['type']) || is_null($params['type']) || is_int($params['type'])){
+
+				$messages[] = 'Debe seleccionar un Tipo de objetivo';
+			}
+
+			if (count($messages) > 0){
+
+				$this->response['code'] = 2;
+				$this->response['data'] = $params;
+				$this->response['message'] = $messages;
+
+			}else{
+
+				
+				$db::beginTransaction();
+
+				try {
+
+					$target 				= new Targets();
+					$target->id 			= null;
+					$target->name 			= $params['name'];
+					$target->qr_id			= uniqid('', true);
+					$target->description 	= $params['description'];
+					$target->phone			= $params['phone'];
+					$target->latitude		= $params['latitude'];
+					$target->longitude		= $params['longitude'];
+					$target->min_mts		= $params['min_mts'];
+					$target->facebook		= $params['facebook'];
+					$target->twitter		= $params['twitter'];
+					$target->instagram		= $params['instagram'];
+					$target->youtube		= $params['youtube'];
+					$target->url			= $params['url'];
+					$target->type			= $params['type'];
+
+
+					if ($target->save()){
+
+						$db::commit();
+						$this->response['code'] = 1;
+						$this->response['data'] = $target;
+						$this->response['message'] = 'Se ha guardado correctamente los datos.';
+
+					}else{
+
+						$this->response['code'] = 5;
+						$this->response['message'] = 'No se pudo completar la acción, intentelo más tarde.';
+
+					}
+					
+				} catch (Exception $e) {
+
+					$db::rollBack();
+					$this->response['code'] = 5;
+					$this->response['message'] = 'Ocurrió un error, favor de contactar al administrador.';
+					$this->response['error'] = $e->getMessage();
+
+				}
+
+
+			}
+
+
+		}else{
+
+			$this->response['code'] = 2;
+			$this->response['data'] = $params;
+			$this->response['message'] = 'Todos los parámetros son requeridos.';
+
+		}
+
+		return $this->response;
+	}
+
+	/**
+	*
+	*/
 	public function eliminarObjetivo($id){
+
 		$db = Connection::getConnectionAPI();
 
 		$params = $this->limpiarDatos(array($id));
@@ -174,6 +365,171 @@ class TargetController extends Controller
 			$this->response['message'] = 'Registro no encontrado.';
 
 		}
+
+		return $this->response;
+	}
+
+	/**
+	+
+	*/
+	public function actualizarTargetAPI(Array $params){
+
+		$db = Connection::getConnectionAPI();
+
+		if (count($params) > 0 && $this->checarAtributos($params) === true){
+
+			$params = $this->limpiarDatos($params);
+
+			$params['latitude'] = doubleval($params['latitude']);
+			$params['longitude'] = doubleval($params['longitude']);
+			$params['min_mts'] = doubleval($params['min_mts']);
+
+			$messages = array();
+
+			if (Targets::find($params['id']) == null)
+			{
+				$messages[] = 'No existe el Objetivo.';
+			}
+
+			if (is_numeric(intval($params['id'])) == false){
+
+				$messages[] = 'El campo ID debe ser de tipo numérico. consulte al administrador';
+			}
+			
+			if (empty($params['name']) || is_null($params['name']) || strlen($params['name']) == 0){
+
+				$messages[] = 'El campo Nombre no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['description']) || is_null($params['description']) || strlen($params['description']) == 0){
+
+				$messages[] = 'El campo Descripción no debe estar vacío, ni tener más de 255 carácteres';
+
+			}
+
+			if (empty($params['phone']) || is_null($params['phone']) || !is_numeric($params['phone'])){
+
+				$messages[] = 'El campo Teléfono debe ser de tipo numérico.';
+			}
+
+			if (empty($params['latitude']) || empty($params['longitude'])) {
+
+				$messages[] = 'El campo latitude o longitud no pueden quedar vacíos.';
+
+			}elseif (!is_double($params['latitude']) || !is_double($params['longitude'])) {
+				
+				$messages[] = 'El campo latitude o longitud deben ser números decimales.';
+
+			}
+
+			if (empty($params['min_mts']) || !is_double($params['min_mts'])) {
+
+				$messages[] = 'El campo de Radio dentro del POI no puede quedar vacío y debe ser número decimal.';
+
+			}
+			
+			if (empty($params['facebook']) || is_null($params['facebook']) || strlen($params['facebook']) == 0){
+
+				$messages[] = 'El campo Facebook no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['twitter']) || is_null($params['twitter']) || strlen($params['twitter']) == 0){
+
+				$messages[] = 'El campo Twitter no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['instagram']) || is_null($params['instagram']) || strlen($params['instagram']) == 0){
+
+				$messages[] = 'El campo Instagram no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['youtube']) || is_null($params['youtube']) || strlen($params['youtube']) == 0){
+
+				$messages[] = 'El campo Youtube no debe estar vacío, ni tener más de 100 carácteres';
+
+			}
+
+			if (empty($params['url']) || is_null($params['url']) || strlen($params['url']) == 0){
+
+				$messages[] = 'El campo Página Web no debe estar vacío, ni tener más de 255 carácteres';
+
+			}
+
+			if (empty($params['type']) || is_null($params['type']) || !is_numeric($params['type'])){
+
+				$messages[] = 'Debe seleccionar un Tipo de objetivo';
+			}
+
+			
+
+			if (count($messages) > 0){
+
+				$this->response['code'] = 2;
+				$this->response['data'] = $params;
+				$this->response['message'] = $messages;
+
+			}else{
+
+				$db::beginTransaction();
+
+				try {
+
+
+					$target 				= Targets::find($params['id']);
+					$target->id 			= intval($params['id']);
+					$target->name 			= $params['name'];
+					$target->description 	= $params['description'];
+					$target->phone			= $params['phone'];
+					$target->latitude		= $params['latitude'];
+					$target->longitude		= $params['longitude'];
+					$target->min_mts		= $params['min_mts'];
+					$target->facebook		= $params['facebook'];
+					$target->twitter		= $params['twitter'];
+					$target->instagram		= $params['instagram'];
+					$target->youtube		= $params['youtube'];
+					$target->url			= $params['url'];
+					$target->type			= $params['type'];
+
+
+					if ($target->save()){
+
+						$db::commit();
+						$this->response['code'] = 1;
+						$this->response['data'] = $target;
+						$this->response['message'] = 'Se han actualizado correctamente los datos.';
+
+					}else{
+
+						$this->response['code'] = 5;
+						$this->response['message'] = 'No se pudo completar la acción, intentelo más tarde.';
+
+					}
+					
+				} catch (Exception $e) {
+
+					$db::rollBack();
+					$this->response['code'] = 5;
+					$this->response['message'] = 'Ocurrió un error, favor de contactar al administrador.';
+					$this->response['error'] = $e->getMessage();
+
+				}
+
+
+			}
+
+
+		}else{
+
+			$this->response['code'] = 2;
+			$this->response['data'] = $params;
+			$this->response['message'] = 'Todos los parámetros son requeridos.';
+
+		}
+
 
 		return $this->response;
 	}
