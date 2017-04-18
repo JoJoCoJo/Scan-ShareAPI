@@ -262,27 +262,55 @@ function agregarUsuario(){
 		      success: function(response){
 		        $.each(response, function(result, element){
 		          //console.log(response);
-		          swal({
-		            title: 'Registro agregado',
-		            text: response.message,
-		            type: 'success',
-		            showConfirmButton: false,
-		            showCancelButton: true,
-		            timer: 1500
-		          }).then(
-		            function () {},
-		            // handling the promise rejection
-		            function (dismiss) {
-		              if (dismiss === 'timer') {
+		          if (response.correo != true) {
 
-		                table.destroy();
-		                table = llenarTabla.load();
-					    $('#formRegistroUsuario')[0].reset();
-					    $('#agregarRegistro').modal('close');
-		              
-		              }
-		            }
-		          )
+          	          swal({
+          	            title: 'Registro agregado',
+          	            text: 'Hubo un problema enviando el correo de confirmación, por favor contacta al administrador.',
+          	            type: 'success',
+          	            showConfirmButton: false,
+          	            showCancelButton: true,
+          	            timer: 5000
+          	          }).then(
+          	            function () {},
+          	            // handling the promise rejection
+          	            function (dismiss) {
+          	              if (dismiss === 'timer') {
+
+          	                table.destroy();
+          	                table = llenarTabla.load();
+          				    $('#formRegistroUsuario')[0].reset();
+          				    $('#agregarRegistro').modal('close');
+          	              
+          	              }
+          	            }
+          	          )
+
+		          }else{
+
+	      	          swal({
+	      	            title: 'Registro agregado',
+	      	            text: response.message,
+	      	            type: 'success',
+	      	            showConfirmButton: false,
+	      	            showCancelButton: true,
+	      	            timer: 1500
+	      	          }).then(
+	      	            function () {},
+	      	            // handling the promise rejection
+	      	            function (dismiss) {
+	      	              if (dismiss === 'timer') {
+
+	      	                table.destroy();
+	      	                table = llenarTabla.load();
+	      				    $('#formRegistroUsuario')[0].reset();
+	      				    $('#agregarRegistro').modal('close');
+	      	              
+	      	              }
+	      	            }
+	      	          )
+
+		          }
 
 		        });
 		      },
