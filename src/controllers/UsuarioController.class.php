@@ -201,6 +201,10 @@ class UsuarioController extends Controller{
 
 						$db::commit();
 
+						$nombreCompleto = $params['name']." ".$params['lastname'];
+						$correoUsuario = $params['email'];
+						$contrasenia = $params['password'];
+						
 						unset($usuario->id);
 						unset($usuario->password);
 						unset($usuario->salt);
@@ -208,6 +212,7 @@ class UsuarioController extends Controller{
 						unset($usuario->updated_at);
 						$this->response['code'] = 1;
 						$this->response['data'] = $usuario;
+						$this->response['correo'] = $this->mandarCorreo($nombreCompleto, $correoUsuario, $contrasenia, 1);
 						$this->response['message'] = 'Se ha guardado correctamente los datos.';
 
 					}else{
@@ -247,7 +252,7 @@ class UsuarioController extends Controller{
 	public function insertarUsuarioAPI(Array $params){
 		
 		$db = Connection::getConnectionAPI();
-
+		
 		if (count($params) > 0 && $this->checarAtributos($params) === true){
 
 			$params = $this->limpiarDatos($params);
@@ -323,9 +328,20 @@ class UsuarioController extends Controller{
 
 					if ($usuario->save()){
 
+						$nombreCompleto = $params['name']." ".$params['lastname'];
+						$correoUsuario = $params['email'];
+						$contrasenia = $params['password'];
+
+						unset($usuario->id);
+						unset($usuario->password);
+						unset($usuario->salt);
+						unset($usuario->created_at);
+						unset($usuario->updated_at);
+
 						$db::commit();
 						$this->response['code'] = 1;
 						$this->response['data'] = $usuario;
+						$this->response['correo'] = $this->mandarCorreo($nombreCompleto, $correoUsuario, $contrasenia, 2);
 						$this->response['message'] = 'Se ha guardado correctamente los datos.';
 
 					}else{
@@ -452,9 +468,15 @@ class UsuarioController extends Controller{
 						unset($usuario->remember_token);
 						unset($usuario->created_at);
 						unset($usuario->updated_at);
+
+						$nombreCompleto = $params['name']." ".$params['lastname'];
+						$correoUsuario = $params['email'];
+						$contrasenia = $params['password'];
+
 						$db::commit();
 						$this->response['code'] = 1;
 						$this->response['data'] = $usuario;
+						$this->response['correo'] = $this->mandarCorreo($nombreCompleto, $correoUsuario, $contrasenia, 3);
 						$this->response['message'] = 'Se han actualizado correctamente los datos.';
 
 					}else{
@@ -639,51 +661,65 @@ class UsuarioController extends Controller{
 	/**
 	*
 	*/
-	function mandarCorreo($usuarioNombre, $usuarioCorreo, $usuarioPassword){
+	private function mandarCorreo($nombreUsuario, $emailUsuario, $passwordUsuario, $type){
 
-		$para 	 	= "$usuarioNombre <$usuarioCorreo>";
-		$asunto  	= "Registro del Usuario $usuarioNombre";
+		$process = false;
 
-		$mensaje = "<html lang=\"es\">
-						<head>
-						<meta charset=\"utf-8\"/>
-						  <title>Nuevo Usuario</title>
-						</head>
-						<body>
-						  <img src=\"http://www.ciidigital.com/img/BannerSep.png\" width=\"600\">
-						  <p>Estos son sus datos para ingresar a la plataforma:</p>
-						  <section>
-							  	<center>
-								  <table border=\"1\">
-	      								<thead>
-									      <tr>
-									        <td><h5><strong>USUARIO</strong></h5></td>
-									        <td><h5><strong>CONTRASEÑA</strong></h5></td>
-									      </tr>
-									    </thead>
-	      								<tbody>
-									      <tr>
-									        <th><h5> $usuarioNombre </h5></th>
-									        <td><h5> $usuarioPassword </h5></td>
-									      </tr>
-									    </tbody>
-									</table>
-								</center>
-								<br/>
-								<br/>
-								<br/>
-							</section>
-							<section>
-								<center><a href=\"http://www.ciidigital.com/\">CIID Examenes Online</a></center>
-							</section>
-						</body>
-					</html>";
+		try {
 
-		$headers  	= "From: Scan-Share <scan-share@hotmail.com>" . "\r\n";
-		$headers   .= 'MIME-Version: 1.0' . "\r\n";
-		$headers   .= 'Content-type: text/html; charset=iso-8' . "\r\n";
+			$nombre = 'Scan & Share';
+			$mail = 'scan-share@hotmail.com';
 
-		mail($para, $asunto, $mensaje, $headers);
+			$cabeceras ='From: '.$nombre."<".$mail.">"."\r\n".
+			            'Reply-To: '.$mail ."\r\n".
+			            'Mime-Version:1.0'."\r\n".
+			            '"Content-Type: text/plain'."\r\n".
+			            'X-Mailer: PHP/'.phpversion();
+
+			$para = $emailUsuario;
+
+			if ($type == 1) {
+
+				$mensaje = "\r\n"."\r\n"."\r\n"."Mensaje de: ".$nombre."\r\n". 
+		       	"Direccion de correo: ".$mail."\r\n"."\r\n"."\r\n".
+		       	"Estimado ".$nombreUsuario.", le damos la más cordial bienvenida a nuestra plataforma."."\r\n"."\r\n".
+		       	"El usuario con el cuál podrá acceder a la plataforma es: \"".$emailUsuario."\"."."\r\n".
+		       	"Y la contraseña qué proporciono es: \"".$passwordUsuario."\"."."\r\n".
+		   	   	"http://www.platform.scan-share.com.mx";
+
+		   	   	$asunto = "¡Bienvenido a la Plataforma Scan-Share!";
+
+			}else if($type == 2){
+
+				$mensaje = "\r\n"."\r\n"."\r\n"."Mensaje de: ".$nombre."\r\n". 
+		       	"Direccion de correo: ".$mail."\r\n"."\r\n"."\r\n".
+		       	"Estimado ".$nombreUsuario.", le damos la más cordial bienvenida a nuestra aplicación."."\r\n"."\r\n".
+		       	"El usuario con el cuál podrá acceder a la aplicación es: \"".$emailUsuario."\"."."\r\n".
+		       	"Y la contraseña qué proporciono es: \"".$passwordUsuario."\"."."\r\n".
+		   	   	"http://www.platform.scan-share.com.mx";
+
+		   	   	$asunto = "¡Bienvenido a la Aplicación Scan-Share!";
+
+			}else if ($type == 3) {
+
+				$mensaje = "\r\n"."\r\n"."\r\n"."Mensaje de: ".$nombre."\r\n". 
+		       	"Direccion de correo: ".$mail."\r\n"."\r\n"."\r\n".
+		       	"Estimado ".$nombreUsuario.", ha cambiado su constraseña."."\r\n"."\r\n".
+		       	"Su usuario es: \"".$emailUsuario."\"."."\r\n".
+		       	"Su nueva contraseña es: \"".$passwordUsuario."\"."."\r\n".
+		   	   	"http://www.platform.scan-share.com.mx";
+
+		   	   	$asunto = "Cambio de constraseña";
+
+			}
+
+			
+
+			$process = mail($para, utf8_decode($asunto), utf8_decode($mensaje), $cabeceras);
+
+		}
+		catch (Exception $e) { }
+		return $process;
 	}
 
 	/**
