@@ -41,7 +41,7 @@ $app->group('/', function(){
 			header('refresh:.1; url=/../views/usuarioView.php');	
 		}
 
-	})->setName('objetivos');
+	})->setName('usuarios');
 
 	$this->get('cerrar', function ($request, $response, $args) {
 
@@ -233,6 +233,19 @@ $app->group('/api/targets', function(){
 		return $response->withJson($json, $code);
 
 	})->setName('buscar_objetivo_por_id');
+
+	/**
+	* Buscar un objetivo por su QR_ID
+	*/
+	$this->post('/{id}/qrid/', function ($request, $response, $args){
+
+		$controller = new TargetController();
+		$json = $controller->callAction('oneAPIqr', $args['id']);
+
+		$code = ($json['code'] == 1) ? 200 : 401;
+		return $response->withJson(array($json), $code);
+
+	})->setName('buscar_objetivo_por_qrid');
 
 	/**
 	* Actualizar un objetivo
