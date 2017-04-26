@@ -13,7 +13,7 @@
 	      <div class="background">
 	        <img src="/media/image/fondo-banner.jpg" width="100%">
 	      </div>
-	      <a href="#!user"><img class="circle" src="/media/image/user.png"></a>
+	      <a href="#!user"><img class="circle" src="/media/image/user.jpg"></a>
 	      <a href="#!name" ><span class="white-text name"><?php echo $_SESSION['sesionLogin']['name'] .' '. $_SESSION['sesionLogin']['lastname']; ?></span></a>
 	      <a href="#!email" ><span class="white-text email"><?php echo $_SESSION['sesionLogin']['email']; ?> <br />Inicio Sesión: <?php echo $_SESSION['sesionLogin']['horaFormat']; ?></span></a>
 	    </div>
