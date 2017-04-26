@@ -696,7 +696,7 @@ class UsuarioController extends Controller{
 		       	"Estimado ".$nombreUsuario.", le damos la más cordial bienvenida a nuestra aplicación."."\r\n"."\r\n".
 		       	"El usuario con el cuál podrá acceder a la aplicación es: \"".$emailUsuario."\"."."\r\n".
 		       	"Y la contraseña qué proporciono es: \"".$passwordUsuario."\"."."\r\n".
-		   	   	"http://www.platform.scan-share.com.mx";
+		   	   	"http://www.scan-share.com.mx";
 
 		   	   	$asunto = "¡Bienvenido a la Aplicación Scan-Share!";
 
@@ -707,7 +707,7 @@ class UsuarioController extends Controller{
 		       	"Estimado ".$nombreUsuario.", ha cambiado su constraseña."."\r\n"."\r\n".
 		       	"Su usuario es: \"".$emailUsuario."\"."."\r\n".
 		       	"Su nueva contraseña es: \"".$passwordUsuario."\"."."\r\n".
-		   	   	"http://www.platform.scan-share.com.mx";
+		   	   	"http://www.scan-share.com.mx";
 
 		   	   	$asunto = "Cambio de constraseña";
 
