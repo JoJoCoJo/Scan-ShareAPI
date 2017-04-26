@@ -250,7 +250,8 @@ function actualizarRegistro(id){
    "url": $('#urlActualizarObjetivo').val(), 
    "latitude": $('#latitudeActualizarObjetivo').val(), 
    "longitude": $('#longitudeActualizarObjetivo').val(), 
-   "min_mts": $('#minmtsActualizarObjetivo').val()
+   "min_mts": $('#minmtsActualizarObjetivo').val(),
+   "email": "jojocojo@hotmail.com"
  };
 
  $.ajax({
@@ -303,7 +304,7 @@ function actualizarRegistro(id){
          console.log("Element Error");
          console.log(element);
 
-         swal('Algo salío mal.', element.message.toString() , 'error');  
+         swal('Algo salío mal.', XMLHttpRequest.responseJSON.message.toString(), 'error');  
 
        });
 
