@@ -11,6 +11,7 @@ class TargetController extends Controller
 		'cerca' 	=> 'medirDistancia',
 		'add'		=> 'insertarTargetAPI',
 		'oneAPI'	=> 'buscarTargetPorIdAPI',
+		'oneAPIqr'	=> 'buscarTargetPorIdAPIqr',
 		'del' 	 	=> 'eliminarObjetivo',
 		'uptAPI'	=> 'actualizarTargetAPI'
 	);
@@ -27,6 +28,7 @@ class TargetController extends Controller
 	private $attributes = array(
 		'name',
 		'description',
+		'email',
 		'phone',
 		'facebook',
 		'twitter',
@@ -175,6 +177,40 @@ class TargetController extends Controller
 	/**
 	*
 	*/
+	public function buscarTargetPorIdAPIqr($id){
+
+		$db = Connection::getConnectionAPI();
+
+		$params = $this->limpiarDatos(array($id));
+
+		$target = Targets::where('qr_id', '=', $params[0])->get();
+		
+		if (count($target) > 0) {
+			
+			unset($target[0]->id);
+			unset($target[0]->qr_id);
+			unset($target[0]->updated_at);
+			unset($target[0]->created_at);
+
+			$this->response['code'] = 1;
+			$this->response['data'] = $target;
+			$this->response['message'] = 'Resgistro encontrado.';
+
+		}else{
+
+			$this->response['code'] = 4;
+			$this->response['data'] = $params;
+			$this->response['message'] = 'Resgistro no encontrado.';
+
+		}
+
+
+		return $this->response;
+	}
+
+	/**
+	*
+	*/
 	public function insertarTargetAPI(Array $params){
 		
 		$db = Connection::getConnectionAPI();
@@ -199,6 +235,15 @@ class TargetController extends Controller
 
 				$messages[] = 'El campo Descripción no debe estar vacío, ni tener más de 255 carácteres';
 
+			}
+
+			if (strlen($params['email']) == 0 || strlen($params['email']) > 255 || empty($params['email'])){
+
+				$messages[] = 'El campo email no puede quedar vacío ni tener una longitud mayor a 255 caracteres';
+
+			}elseif(!filter_var($params['email'], FILTER_VALIDATE_EMAIL)){
+
+				$messages[] = 'El email no es valido';
 			}
 
 			if (empty($params['phone']) || is_null($params['phone']) || !is_numeric($params['phone'])){
@@ -406,6 +451,15 @@ class TargetController extends Controller
 
 				$messages[] = 'El campo Descripción no debe estar vacío, ni tener más de 255 carácteres';
 
+			}
+
+			if (strlen($params['email']) == 0 || strlen($params['email']) > 255 || empty($params['email'])){
+
+				$messages[] = 'El campo email no puede quedar vacío ni tener una longitud mayor a 255 caracteres';
+
+			}elseif(!filter_var($params['email'], FILTER_VALIDATE_EMAIL)){
+
+				$messages[] = 'El email no es valido';
 			}
 
 			if (empty($params['phone']) || is_null($params['phone']) || !is_numeric($params['phone'])){
