@@ -27,7 +27,7 @@
 
 	<div class="container">
 		<div class="row">
-			<div class="col s12 center">
+			<div class="col s12 center white-text">
 				<h1>¡Bienvenido!</h1>
 			</div>
 		</div>
