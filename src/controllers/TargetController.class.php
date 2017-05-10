@@ -431,8 +431,8 @@ class TargetController extends Controller
 
 			$messages = array();
 
-			if (Targets::find($params['id']) == null)
-			{
+			if (Targets::find($params['id']) == null){
+				
 				$messages[] = 'No existe el Objetivo.';
 			}
 
