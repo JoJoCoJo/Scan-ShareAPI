@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/js/navbar.js"></script>
 <div class="navbar-fixed">
 	<nav class="blue">
 		<div class="nav-wrapper">
@@ -31,5 +32,5 @@
 
    <?php } ?>
 
-   <li><a href="/cerrar"><i class="fa fa-sign-out" aria-hidden="true"></i>Salir</a></li>
+   <li><a onclick="cerrar();"><i class="fa fa-sign-out" aria-hidden="true"></i>Salir</a></li>
 </ul>
