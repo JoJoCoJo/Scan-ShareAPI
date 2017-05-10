@@ -32,5 +32,5 @@
 
    <?php } ?>
 
-   <li><a onclick="cerrar();"><i class="fa fa-sign-out" aria-hidden="true"></i>Salir</a></li>
+   <li><a href="#" onclick="cerrar();"><i class="fa fa-sign-out" aria-hidden="true"></i>Salir</a></li>
 </ul>
