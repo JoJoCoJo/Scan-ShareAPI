@@ -100,35 +100,22 @@ class TargetController extends Controller
 				$lat = $params['latitude'];
 				$lon = $params['longitude'];
 
-				$targets = Targets::select($db::raw('*, (6371 * ACOS(SIN(RADIANS(latitude)) * SIN(RADIANS('.$lat.')) + COS(RADIANS(longitude - '.$lon.')) * COS(RADIANS(latitude)) * COS(RADIANS('.$lat.')))) AS distance'))->orderBy("distance", "ASC")->limit(1)->get();
+				$targets = Targets::select($db::raw('*, (6371 * ACOS(SIN(RADIANS(latitude)) * SIN(RADIANS('.$lat.')) + COS(RADIANS(longitude - '.$lon.')) * COS(RADIANS(latitude)) * COS(RADIANS('.$lat.')))) AS distance'))->orderBy("distance", "ASC")->limit(10)->get();
 				
 				$minimaDistancia = doubleval($targets[0]->min_mts);
 				$resultadoDistancia = $targets[0]->distance;
 
-				if ($minimaDistancia >= $resultadoDistancia) {
-					
-					unset($targets[0]->id);
-					unset($targets[0]->min_mts);
-					unset($targets[0]->updated_at);
-					unset($targets[0]->created_at);
-					unset($targets[0]->type);
-					unset($targets[0]->shared);
-					$this->response['data'] = $targets;
-					$this->response['message'] = 'DENTRO DEL POI: Distancia entre punto actual y el Target más cercano';
-
-				}else{
-
-					unset($targets[0]->id);
-					unset($targets[0]->min_mts);
-					unset($targets[0]->updated_at);
-					unset($targets[0]->created_at);
-					unset($targets[0]->type);
-					unset($targets[0]->shared);
-					$this->response['code'] = 4;
-					$this->response['data'] = $targets;
-					$this->response['message'] = 'FUERA DEL POI: Distancia entre punto actual y el Target más cercano';
-
-				}
+					foreach ($targets as $key => $value) {
+						unset($targets[$key]->id);
+						unset($targets[$key]->min_mts);
+						unset($targets[$key]->updated_at);
+						unset($targets[$key]->created_at);
+						unset($targets[$key]->type);
+						unset($targets[$key]->shared);
+						$this->response['code'] = 1;
+						$this->response['data'] = $targets;
+						$this->response['message'] = 'Lista de PoI\'s';
+					}
 
 			}
 
@@ -324,6 +311,7 @@ class TargetController extends Controller
 					$target->latitude		= $params['latitude'];
 					$target->longitude		= $params['longitude'];
 					$target->min_mts		= $params['min_mts'];
+					$target->email 			= $params['email'];
 					$target->facebook		= $params['facebook'];
 					$target->twitter		= $params['twitter'];
 					$target->instagram		= $params['instagram'];
@@ -541,6 +529,7 @@ class TargetController extends Controller
 					$target->latitude		= $params['latitude'];
 					$target->longitude		= $params['longitude'];
 					$target->min_mts		= $params['min_mts'];
+					$target->email 			= $params['email'];
 					$target->facebook		= $params['facebook'];
 					$target->twitter		= $params['twitter'];
 					$target->instagram		= $params['instagram'];
